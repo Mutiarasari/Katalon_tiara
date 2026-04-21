@@ -241,3 +241,568 @@ Browser yang digunakan: Chrome 147.0.7727.56
 - Project menggunakan Katalon Enterprise Edition v11.1.1
 - Custom keywords belum diimplementasikan (masih template)
 - Global variables masih kosong, credentials langsung di-hardcode dalam script
+
+
+
+# Dokumentasi Teknis - SauceDemo Katalon Test Automation
+
+## Daftar Isi
+
+1. [Arsitektur Project](#1-arsitektur-project)
+2. [Alur Pengujian (Test Flow)](#2-alur-pengujian-test-flow)
+3. [Detail Script Groovy](#3-detail-script-groovy)
+4. [Object Repository Detail](#4-object-repository-detail)
+5. [Konfigurasi Project](#5-konfigurasi-project)
+6. [Panduan Pengembangan](#6-panduan-pengembangan)
+7. [Troubleshooting](#7-troubleshooting)
+
+---
+
+## 1. Arsitektur Project
+
+Project ini menggunakan arsitektur **Record & Playback** dengan pendekatan **Page Object** melalui Object Repository Katalon.
+
+```
+┌─────────────────────────────────────────────────┐
+│                  TEST SUITES                     │
+│          LG01-Login | PR01-Product               │
+└──────────────────┬──────────────────────────────┘
+                   │ mengelompokkan
+┌──────────────────▼──────────────────────────────┐
+│                 TEST CASES                       │
+│   TC-01 | TC-02 | TC-03 | ... | TC-08           │
+└──────────────────┬──────────────────────────────┘
+                   │ diimplementasikan oleh
+┌──────────────────▼──────────────────────────────┐
+│                  SCRIPTS                         │
+│           Script Groovy (.groovy)                │
+└──────────────────┬──────────────────────────────┘
+                   │ menggunakan
+         ┌─────────┴──────────┐
+         │                    │
+┌────────▼───────┐   ┌────────▼────────┐
+│ OBJECT REPO    │   │ KATALON WEBUI   │
+│ Web Elements   │   │ Keywords Built-in│
+│ (.rs files)    │   │ (WebUI.click,   │
+│                │   │  WebUI.setText) │
+└────────────────┘   └─────────────────┘
+```
+
+### Komponen Utama
+
+| Komponen | Deskripsi | Lokasi |
+|----------|-----------|--------|
+| Test Cases | Definisi skenario pengujian | `Test Cases/*.tc` |
+| Scripts | Implementasi Groovy dari test case | `Scripts/*/Script*.groovy` |
+| Test Suites | Pengelompokan test case | `Test Suites/*.ts` |
+| Object Repository | Definisi web element | `Object Repository/**/*.rs` |
+| Profiles | Konfigurasi variabel global | `Profiles/*.glbl` |
+| Keywords | Custom keyword (belum diisi) | `Keywords/` |
+
+---
+
+## 2. Alur Pengujian (Test Flow)
+
+### Flow Login Berhasil (TC-01)
+
+```
+Start
+  │
+  ▼
+Buka Browser
+  │
+  ▼
+Navigasi ke https://www.saucedemo.com
+  │
+  ▼
+Input Username: "standard_user"
+  │
+  ▼
+Input Password: "secret_sauce" (encrypted)
+  │
+  ▼
+Klik Tombol Login
+  │
+  ▼
+Verifikasi: Header halaman = "Swag Labs"
+  │
+  ▼
+Tutup Browser
+  │
+  ▼
+End (PASSED)
+```
+
+### Flow Login Gagal - Invalid Credential (TC-02)
+
+```
+Start
+  │
+  ▼
+Buka Browser → Navigasi ke URL
+  │
+  ▼
+Input Username: "invalid_username"
+Input Password: "password123" (encrypted)
+  │
+  ▼
+Klik Tombol Login
+  │
+  ▼
+Verifikasi: Error Message =
+"Epic sadface: Username and password do not match any user in this service"
+  │
+  ▼
+Tutup Browser → End (PASSED)
+```
+
+### Flow Login Gagal - Username Kosong (TC-03)
+
+```
+Start → Buka Browser → Navigasi ke URL
+  │
+  ▼
+Input Password saja (Username dibiarkan kosong)
+  │
+  ▼
+Klik Tombol Login
+  │
+  ▼
+Verifikasi: Error Message = "Username is required"
+  │
+  ▼
+Tutup Browser → End (PASSED)
+```
+
+### Flow Login Gagal - Password Kosong (TC-04)
+
+```
+Start → Buka Browser → Navigasi ke URL
+  │
+  ▼
+Input Username saja (Password dibiarkan kosong)
+  │
+  ▼
+Klik Tombol Login
+  │
+  ▼
+Verifikasi: Error validasi password muncul
+  │
+  ▼
+Tutup Browser → End (PASSED)
+```
+
+### Flow Login Gagal - Kedua Field Kosong (TC-05)
+
+```
+Start → Buka Browser → Navigasi ke URL
+  │
+  ▼
+Langsung Klik Tombol Login (tanpa isi apapun)
+  │
+  ▼
+Verifikasi: Error Message = "Username is required"
+  │
+  ▼
+Tutup Browser → End (PASSED)
+```
+
+### Flow Navigasi Detail Produk (TC-06)
+
+```
+Start → Login dengan kredensial valid
+  │
+  ▼
+Klik gambar produk "Sauce Labs Backpack"
+  │
+  ▼
+Verifikasi: Halaman detail produk terbuka
+  │
+  ▼
+Tutup Browser → End (PASSED)
+```
+
+### Flow Tambah ke Keranjang (TC-07)
+
+```
+Start → Login dengan kredensial valid
+  │
+  ▼
+Klik tombol "Add to Cart" pada Sauce Labs Backpack
+  │
+  ▼
+Verifikasi: Badge keranjang menampilkan angka "1"
+  │
+  ▼
+Klik badge keranjang → Navigasi ke halaman Cart
+  │
+  ▼
+Verifikasi: Produk terlihat di keranjang
+  │
+  ▼
+Tutup Browser → End (PASSED)
+```
+
+### Flow Hapus dari Keranjang (TC-08)
+
+```
+Start → Login dengan kredensial valid
+  │
+  ▼
+Klik "Add to Cart" → Klik badge keranjang
+  │
+  ▼
+Klik tombol "Remove" di halaman keranjang
+  │
+  ▼
+Kembali ke halaman produk
+  │
+  ▼
+Klik "Add to Cart" lagi → Navigasi ke keranjang
+  │
+  ▼
+Klik tombol "Remove" sekali lagi
+  │
+  ▼
+Verifikasi: Keranjang kosong
+  │
+  ▼
+Tutup Browser → End (PASSED)
+```
+
+---
+
+## 3. Detail Script Groovy
+
+### Struktur Standar Script
+
+Setiap script test case mengikuti pola berikut:
+
+```groovy
+// Import wajib
+import static com.kms.katalon.core.checkpoint.CheckpointFactory.findCheckpoint
+import static com.kms.katalon.core.testcase.TestCaseFactory.findTestCase
+import static com.kms.katalon.core.testdata.TestDataFactory.findTestData
+import static com.kms.katalon.core.testobject.ObjectRepository.findTestObject
+import static com.kms.katalon.core.testobject.ObjectRepository.findTestObjectAbsolutePath
+import com.kms.katalon.core.configuration.RunConfiguration as RunConfiguration
+import com.kms.katalon.core.model.FailureHandling as FailureHandling
+import com.kms.katalon.core.testcase.TestCase as TestCase
+import com.kms.katalon.core.testdata.TestData as TestData
+import com.kms.katalon.core.testobject.TestObject as TestObject
+import com.kms.katalon.core.webui.keyword.WebUiBuiltInKeywords as WebUI
+import org.openqa.selenium.Keys as Keys
+
+// Body test
+WebUI.openBrowser('')
+WebUI.navigateToUrl('https://www.saucedemo.com')
+
+// Aksi pengujian...
+
+WebUI.closeBrowser()
+```
+
+### Keywords yang Digunakan
+
+| Keyword | Deskripsi | Contoh Penggunaan |
+|---------|-----------|-------------------|
+| `WebUI.openBrowser('')` | Membuka browser baru | `WebUI.openBrowser('')` |
+| `WebUI.navigateToUrl(url)` | Navigasi ke URL | `WebUI.navigateToUrl('https://www.saucedemo.com')` |
+| `WebUI.setText(obj, text)` | Mengisi teks pada input | `WebUI.setText(findTestObject('...'), 'standard_user')` |
+| `WebUI.setEncryptedText(obj, text)` | Mengisi teks terenkripsi (password) | `WebUI.setEncryptedText(findTestObject('...'), 'encryptedPass')` |
+| `WebUI.click(obj)` | Mengklik elemen | `WebUI.click(findTestObject('...'))` |
+| `WebUI.verifyElementText(obj, text)` | Verifikasi teks elemen | `WebUI.verifyElementText(findTestObject('...'), 'Swag Labs')` |
+| `WebUI.closeBrowser()` | Menutup browser | `WebUI.closeBrowser()` |
+
+### Contoh Script Lengkap: TC-01
+
+```groovy
+// TC-01: Berhasil Login dengan Kredensial Valid
+
+WebUI.openBrowser('')
+WebUI.navigateToUrl('https://www.saucedemo.com')
+
+// Input username
+WebUI.setText(
+    findTestObject('Object Repository/TC-01_Succed.Login/Page_Swag Labs/input_Username'),
+    'standard_user'
+)
+
+// Input password (encrypted)
+WebUI.setEncryptedText(
+    findTestObject('Object Repository/TC-01_Succed.Login/Page_Swag Labs/input_Password'),
+    'aGVsbG8='  // 'secret_sauce' dalam format enkripsi Katalon
+)
+
+// Klik tombol login
+WebUI.click(
+    findTestObject('Object Repository/TC-01_Succed.Login/Page_Swag Labs/input_login-button')
+)
+
+// Verifikasi berhasil login
+WebUI.verifyElementText(
+    findTestObject('Object Repository/TC-01_Succed.Login/Page_Swag Labs/div_Swag Labs'),
+    'Swag Labs'
+)
+
+WebUI.closeBrowser()
+```
+
+---
+
+## 4. Object Repository Detail
+
+### Struktur Folder
+
+```
+Object Repository/
+├── TC-01_Succed.Login/
+│   └── Page_Swag Labs/
+│       ├── input_Username.rs
+│       ├── input_Password.rs
+│       ├── input_login-button.rs
+│       └── div_Swag Labs.rs
+│
+├── TC-02_Failed.Login1/
+│   └── Page_Swag Labs/
+│       ├── input_Username.rs
+│       ├── input_Password.rs
+│       ├── input_login-button.rs
+│       └── h3_Epic sadface_ Username and password do not ma.rs
+│
+├── TC-03-Failed.Login2/
+│   └── Page_Swag Labs/
+│       ├── input_Password.rs
+│       ├── input_login-button.rs
+│       └── div_Epic sadface_ Username is required.rs
+│
+├── TC-04_Failed.Login3/
+│   └── Page_Swag Labs/
+│       ├── input_Username.rs
+│       └── input_login-button.rs
+│
+├── TC-05_Failed.Login4/
+│   └── Page_Swag Labs/
+│       ├── input_login-button.rs
+│       └── div_Epic sadface_ Username is required.rs
+│
+├── TC-06_Product Detail/
+│   └── Page_Swag Labs/
+│       ├── input_Username.rs
+│       ├── input_Password.rs
+│       ├── input_login-button.rs
+│       └── img_Sauce Labs Backpack.rs
+│
+├── TC-07_Add Cart/
+│   └── Page_Swag Labs/
+│       ├── input_Username.rs
+│       ├── input_Password.rs
+│       ├── input_login-button.rs
+│       ├── button_add-to-cart-sauce-labs-backpack.rs
+│       ├── span_1.rs
+│       └── div_Continue ShoppingCheckout.rs
+│
+└── TC-08_Remove Cart/
+    └── Page_Swag Labs/
+        ├── input_Username.rs
+        ├── input_Password.rs
+        ├── input_login-button.rs
+        ├── button_add-to-cart-sauce-labs-backpack.rs
+        ├── button_remove-sauce-labs-backpack.rs
+        └── span_1.rs
+```
+
+### Definisi Elemen
+
+Setiap file `.rs` berisi XML dengan definisi XPath/CSS selector:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<WebElementEntity>
+   <description></description>
+   <name>input_Username</name>
+   <properties>
+      <isSelected>true</isSelected>
+      <matchCondition>equals</matchCondition>
+      <name>xpath</name>
+      <type>Main</type>
+      <value>//*[@data-test = 'username']</value>
+   </properties>
+   <selectorCollection>
+      <entry>
+         <key>XPATH</key>
+         <value>//*[@data-test = 'username']</value>
+      </entry>
+      <entry>
+         <key>CSS</key>
+         <value>#user-name</value>
+      </entry>
+   </selectorCollection>
+   <selectorMethod>XPATH</selectorMethod>
+</WebElementEntity>
+```
+
+### Mapping Elemen ke Selector
+
+| Element Name | XPath | CSS Alternative |
+|---|---|---|
+| `input_Username` | `//*[@data-test='username']` | `#user-name` |
+| `input_Password` | `//*[@data-test='password']` | `#password` |
+| `input_login-button` | `//*[@data-test='login-button']` | `#login-button` |
+| `button_add-to-cart-sauce-labs-backpack` | `//*[@data-test='add-to-cart-sauce-labs-backpack']` | - |
+| `button_remove-sauce-labs-backpack` | `//*[@data-test='remove-sauce-labs-backpack']` | - |
+| `img_Sauce Labs Backpack` | `//img[@alt='Sauce Labs Backpack']` | - |
+| `span_1` | `//span[@class='shopping_cart_badge']` | `.shopping_cart_badge` |
+
+---
+
+## 5. Konfigurasi Project
+
+### File Konfigurasi Utama
+
+**`SauceDemo_Katalon.prj`** - Konfigurasi project Katalon:
+```xml
+<!-- Key settings -->
+<projectType>WEBUI</projectType>
+<edition>ENTERPRISE</edition>
+<pageLoadTimeout>0</pageLoadTimeout>
+```
+
+**`Profiles/default.glbl`** - Global variables (kosong, tidak ada variabel custom):
+```xml
+<GlobalVariableEntities>
+   <!-- Tidak ada variabel global yang terdefinisi -->
+</GlobalVariableEntities>
+```
+
+**`build.gradle`** - Build configuration:
+```gradle
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Semua dependency di-comment (tidak ada external dependency)
+}
+```
+
+### Konfigurasi Test Suite
+
+Setiap test suite dikonfigurasi dengan:
+- **isReuseDriver**: `false` - Setiap test case menggunakan browser instance baru
+- **pageLoadTimeout**: `10` detik
+- **Browser**: Chrome (default)
+
+---
+
+## 6. Panduan Pengembangan
+
+### Menambah Test Case Baru
+
+1. **Buat Test Case baru** di Katalon Studio:
+   - Klik kanan folder `Test Cases` > **New** > **Test Case**
+   - Beri nama sesuai konvensi: `TC-XX_Nama Test Case`
+
+2. **Buat Object Repository** untuk elemen baru:
+   - Klik kanan folder `Object Repository` > **New** > **Test Object**
+   - Atau gunakan fitur **Spy Web** untuk merekam elemen secara otomatis
+
+3. **Tulis Script** di tab **Script** pada test case:
+   ```groovy
+   WebUI.openBrowser('')
+   WebUI.navigateToUrl('https://www.saucedemo.com')
+   // Tambahkan aksi pengujian di sini
+   WebUI.closeBrowser()
+   ```
+
+4. **Daftarkan ke Test Suite** yang sesuai
+
+### Konvensi Penamaan
+
+| Komponen | Format | Contoh |
+|----------|--------|--------|
+| Test Case | `TC-XX_Deskripsi` | `TC-09_Succed Checkout Product` |
+| Test Suite | `XX01-NamaModul` | `CO01-Checkout` |
+| Object Repository Folder | `TC-XX_NamaModul` | `TC-09_Checkout` |
+| Web Element | `tipe_identifier` | `button_checkout`, `input_firstName` |
+
+### Rekomendasi Pengembangan Lanjutan
+
+1. **Gunakan Global Variables** untuk menyimpan URL dan kredensial:
+   ```groovy
+   // Di Profiles/default.glbl, tambahkan:
+   // BASE_URL = "https://www.saucedemo.com"
+   // USERNAME = "standard_user"
+
+   // Di script:
+   WebUI.navigateToUrl(GlobalVariable.BASE_URL)
+   ```
+
+2. **Buat Custom Keywords** untuk aksi yang berulang (misalnya login):
+   ```groovy
+   // Keywords/LoginKeywords.groovy
+   @Keyword
+   def loginWithValidCredentials() {
+       WebUI.setText(findTestObject('...input_Username'), GlobalVariable.USERNAME)
+       WebUI.setEncryptedText(findTestObject('...input_Password'), GlobalVariable.PASSWORD)
+       WebUI.click(findTestObject('...input_login-button'))
+   }
+   ```
+
+3. **Data-Driven Testing** menggunakan Data Files untuk berbagai skenario
+
+4. **Refaktor Object Repository** agar elemen yang sama tidak diduplikasi di setiap folder TC
+
+---
+
+## 7. Troubleshooting
+
+### Masalah Umum dan Solusinya
+
+#### Browser tidak terbuka
+```
+Solusi:
+- Pastikan Chrome terinstall dan versinya kompatibel
+- Update ChromeDriver di Katalon (Tools > Update WebDrivers > Chrome)
+- Periksa: Window > Katalon Studio Preferences > Katalon > WebUI > Default Browser
+```
+
+#### Element tidak ditemukan (No Such Element)
+```
+Solusi:
+- Buka Object Repository dan verifikasi XPath masih valid
+- Gunakan Spy Web untuk memperbarui selector
+- Cek apakah aplikasi SauceDemo ada perubahan UI
+- Tambahkan delay: WebUI.delay(2) sebelum aksi pada elemen
+```
+
+#### Test gagal karena waktu loading
+```
+Solusi:
+- Tambahkan WebUI.waitForElementVisible(obj, timeout) sebelum interaksi
+- Contoh: WebUI.waitForElementVisible(findTestObject('...login-button'), 10)
+```
+
+#### Password encryption error
+```
+Solusi:
+- Re-enkripsi password menggunakan: Help > Encrypt Text
+- Atau gunakan WebUI.setText() untuk tujuan debugging (jangan di production)
+```
+
+#### Script tidak bisa di-run via Command Line
+```
+Solusi:
+- Pastikan Katalon Runtime Engine (KRE) terinstall
+- Verifikasi license KRE aktif
+- Periksa path project di command katalonc
+```
+
+---
+
+*Dokumentasi ini dibuat berdasarkan struktur project SauceDemo_Katalon pada tanggal 21 April 2026.*
+
