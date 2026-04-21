@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<WebElementEntity>
+   <description></description>
+   <name>div_Password for all users_secret_sauce</name>
+   <tag></tag>
+   <elementGuidId>72232875-ed48-4f2f-9fab-1f574224a521</elementGuidId>
+   <selectorCollection>
+      <entry>
+         <key>XPATH</key>
+         <value>//*[@data-test = 'login-password']</value>
+      </entry>
+      <entry>
+         <key>CSS</key>
+         <value>[data-test=&quot;login-password&quot;]</value>
+      </entry>
+   </selectorCollection>
+   <selectorMethod>XPATH</selectorMethod>
+   <smartLocatorEnabled>false</smartLocatorEnabled>
+   <useRalativeImagePath>true</useRalativeImagePath>
+   <webElementProperties>
+      <isSelected>false</isSelected>
+      <matchCondition>equals</matchCondition>
+      <name>tag</name>
+      <type>Main</type>
+      <value>div</value>
+      <webElementGuid>ed6ec139-568c-440a-a296-a79fa4745b40</webElementGuid>
+   </webElementProperties>
+   <webElementProperties>
+      <isSelected>false</isSelected>
+      <matchCondition>equals</matchCondition>
+      <name>class</name>
+      <type>Main</type>
+      <value>login_password</value>
+      <webElementGuid>c955cd7b-e1f3-4310-9efb-96b3ac5ed07d</webElementGuid>
+   </webElementProperties>
+   <webElementProperties>
+      <isSelected>false</isSelected>
+      <matchCondition>equals</matchCondition>
+      <name>data-test</name>
+      <type>Main</type>
+      <value>login-password</value>
+      <webElementGuid>0975a4c8-a3c8-4ca5-807e-47c037c90835</webElementGuid>
+   </webElementProperties>
+   <webElementProperties>
+      <isSelected>true</isSelected>
+      <matchCondition>equals</matchCondition>
+      <name>text</name>
+      <type>Main</type>
+      <value>Password for all users:secret_sauce</value>
+      <webElementGuid>70b9481c-3940-4cfc-922b-63f14dc938c5</webElementGuid>
+   </webElementProperties>
+   <webElementProperties>
+      <isSelected>false</isSelected>
+      <matchCondition>equals</matchCondition>
+      <name>parent</name>
+      <type>Main</type>
+      <value>md5.v1-cbd84e0436da9fff0a37ee7ce36c3f0d</value>
+      <webElementGuid>ccde5330-3b03-4869-ab0f-8c74a810157c</webElementGuid>
+   </webElementProperties>
+   <webElementProperties>
+      <isSelected>false</isSelected>
+      <matchCondition>equals</matchCondition>
+      <name>xpath</name>
+      <type>Main</type>
+      <value>//*[@data-test = 'login-password']</value>
+      <webElementGuid>49ea13f4-0abe-42b3-ba82-603df1bdc4f8</webElementGuid>
+   </webElementProperties>
+   <webElementXpaths>
+      <isSelected>false</isSelected>
+      <matchCondition>equals</matchCondition>
+      <name>xpath:attributes</name>
+      <type>Main</type>
+      <value>//*[@data-test = 'login-password']</value>
+      <webElementGuid>d9b5a079-e8f4-44a7-91c7-c9f1ae4f4044</webElementGuid>
+   </webElementXpaths>
+   <webElementXpaths>
+      <isSelected>false</isSelected>
+      <matchCondition>equals</matchCondition>
+      <name>xpath:customAttributes</name>
+      <type>Main</type>
+      <value>//div[(text() = 'Password for all users:secret_sauce' or . = 'Password for all users:secret_sauce')]</value>
+      <webElementGuid>b1811c7d-4a72-48f9-8868-cbc6cfbd4187</webElementGuid>
+   </webElementXpaths>
+</WebElementEntity>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestCaseEntity>
+   <description></description>
+   <name>TC-03_Failed Login Without Filled Username</name>
+   <tag></tag>
+   <comment></comment>
+   <origin>WEB_RECORDER</origin>
+   <recordOption>OTHER</recordOption>
+   <testCaseGuid>6c79c66d-fe4d-42b3-bec0-2e32610b717f</testCaseGuid>
+</TestCaseEntity>
